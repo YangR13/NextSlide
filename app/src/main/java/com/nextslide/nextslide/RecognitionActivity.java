@@ -24,6 +24,10 @@ public class RecognitionActivity extends AppCompatActivity {
         final String TAG = "RecognitionActivity";
         final TextView mTextView = (TextView) findViewById(R.id.speechText);
 
+        //TODO: Display name of presentation
+        //TODO: Recieve string/resource associations
+        //TODO: Display image if strings match
+
         Log.d(TAG,"Creating SpeechRecognizer");
         final SpeechRecognizer mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
         Log.d(TAG,"SpeechRecognizer created.");

@@ -16,6 +16,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //TODO: Display list of all presentations
+        //TODO: For each presentation, give user option to edit or present
+        //TODO: Create presentation builder activity. Activity allows users to add files from gallery to resource folder (maybe, might be better solutions). Activity also displays existing associations.
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
