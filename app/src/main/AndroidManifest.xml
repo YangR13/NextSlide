@@ -22,6 +22,11 @@
             </intent-filter>
         </activity>
         <activity android:name=".RecognitionActivity"></activity>
+        <activity
+            android:name=".PresentationActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+>>>>>>> Stashed changes
     </application>
 
 </manifest>
