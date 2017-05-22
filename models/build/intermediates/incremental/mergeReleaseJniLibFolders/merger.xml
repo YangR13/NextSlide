@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger version="3"><dataSet config="main"><source path="/home/ece-god/Downloads/ECE/ECE150/NextSlide/models/src/main/jniLibs"/></dataSet><dataSet config="release"><source path="/home/ece-god/Downloads/ECE/ECE150/NextSlide/models/src/release/jniLibs"/></dataSet></merger>
