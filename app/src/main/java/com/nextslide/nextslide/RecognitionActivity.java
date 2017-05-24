@@ -92,7 +92,9 @@ public class RecognitionActivity extends Activity implements
         if (b == null) {
             // TODO: Error! Go back to MainActivity!
         }
+        Log.d(TAG,"Retrieving parcelable");
         mPresentation = b.getParcelable("presentation_id");
+        Log.d(TAG,"Read parcelable");
         if(mPresentation == null) {
             // TODO: Error! Go back to MainActivity!
         }
@@ -216,6 +218,7 @@ public class RecognitionActivity extends Activity implements
         Log.d(TAG,"Got string: " + text);
         String mapKey = text.trim();
         if(mPresentation.containsKey(mapKey)) {
+            Log.d(TAG,"Performing action");
             mPresentation.performAction(mapKey);
         }
         else {

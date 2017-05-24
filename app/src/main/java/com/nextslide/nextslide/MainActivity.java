@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,6 +20,7 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private ArrayList<Presentation> mPresentations;
+    private String TAG = "Main Activity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,11 +52,15 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
         p1.addAction("ramen", new Presentation.ImageAction(R.drawable.ramen));
         mPresentations.add(p1);
 
+        Log.d(TAG,"Creating p2");
         Presentation p2 = new Presentation("Brian's Presentation", "Memes. All the memes.");
         p2.addAction("stand", new Presentation.ImageAction(R.drawable.jojo));
         p2.addAction("alligators", new Presentation.ImageAction(R.drawable.alligators));
         p2.addAction("popping", new Presentation.ImageAction(R.drawable.jimbo));
         p2.addAction("abilities", new Presentation.ImageAction(R.drawable.tommy));
+        p2.addAction("six", new Presentation.SoundAction(R.raw.drakesix));
+        p2.addAction("drake", new Presentation.ImageAction(R.drawable.drake));
+        p2.addAction("good", new Presentation.SoundAction(R.raw.verygood));
         mPresentations.add(p2);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -95,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
         Bundle presentationBundle = new Bundle();
         presentationBundle.putParcelable("presentation_id", presentation);
         intent.putExtras(presentationBundle);
+        Log.d(TAG,"Starting presentation");
         this.startActivity(intent);
     }
 }

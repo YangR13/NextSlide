@@ -2,6 +2,9 @@ package com.nextslide.nextslide;
 
 import android.app.Activity;
 import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
@@ -12,8 +15,17 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import org.apache.commons.lang3.ObjectUtils;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Set;
+
+import edu.cmu.pocketsphinx.Assets;
+
+import static java.sql.Types.NULL;
 
 /**
  * Created by yangren on 5/16/17.
@@ -27,6 +39,9 @@ public class Presentation implements Parcelable {
     //private ViewGroup mParent;
     private int mParent;
     private Activity mActivity;
+    static MediaPlayer mMediaPlayer;
+
+    static String TAG = "Presentation";
 
     // Constructor.
     public Presentation(String name, String description)
@@ -153,10 +168,12 @@ public class Presentation implements Parcelable {
         private int mImage;
         public ImageAction(int image) {
             super("image");
+            Log.d(TAG,"Reading image from ID");
             mImage = image;
         }
         public ImageAction(Parcel in) {
             super(in);
+            Log.d(TAG,"Reading image from parcel");
             mImage = in.readInt();
         }
 
@@ -202,29 +219,60 @@ public class Presentation implements Parcelable {
             }
         };
     }
-
-    // TODO.
     static class SoundAction extends Action {
-        // private ??? mSound;
-        public SoundAction() {
+        private int mSound;
+        public SoundAction(int image) {
             super("sound");
+            Log.d(TAG,"Reading sound from ID");
+            mSound = image;
         }
         public SoundAction(Parcel in) {
             super(in);
+            Log.d(TAG,"Reading sound from parcel");
+            mSound = in.readInt();
         }
-        public boolean performAction(Activity activity, int layout) {
-            if(!super.performAction(activity, layout)) return false;
-            // Don't do anything with layout!
-            // Play sound here.
 
+        //public boolean performAction(ViewGroup parent) {
+        public boolean performAction(final Activity activity, int layout) {
+            if(!super.performAction(activity, layout)) return false;
+            // Play sound here.
+            Log.d(TAG,"Executing sound, mSound = " + String.valueOf(mSound));
+            new AsyncTask<Integer, Void, Exception>() {
+                @Override
+                protected Exception doInBackground(Integer... params) {
+                    if(mMediaPlayer == null) {
+                        Log.d(TAG, "Creating media player");
+                        //if resource
+                        int sound = params[0];
+                        Log.d(TAG, "mSound = " + String.valueOf(sound));
+                        mMediaPlayer = MediaPlayer.create(activity, sound);
+                        mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            public void onCompletion(MediaPlayer mp) {
+                                try {
+                                    mMediaPlayer.stop();
+                                    mMediaPlayer.release();
+                                    mMediaPlayer = null;
+                                    Log.d(TAG, "Media player released");
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                        Log.d(TAG, "Starting media player");
+                        mMediaPlayer.start();
+                    }
+                    return null;
+                }
+            }.execute(mSound);
             return true;
-        }
+        };
 
         /**
          * Implement Parcelable interface.
          */
         public void writeToParcel(Parcel out, int flags) {
             super.writeToParcel(out, flags);
+            out.writeInt(mSound);
         }
 
         public static final Parcelable.Creator<SoundAction> CREATOR
@@ -238,4 +286,88 @@ public class Presentation implements Parcelable {
             }
         };
     }
+//    // TODO.
+//    static class SoundAction extends Action {
+//        private int mSound;
+//        public SoundAction(int sound) {
+//            super("sound");
+//            Log.d(TAG, "resource ID = " + String.valueOf(sound));
+//            mSound = sound;
+//            Log.d(TAG, "mSound = " + String.valueOf(mSound));
+//        }
+//        public SoundAction(Parcel in) {
+//            super(in);
+//            Log.d(TAG,"Reading sound from parcel");
+//            mSound = in.readInt();
+//        }
+//
+//        public boolean performAction(final Activity activity, int layout) {
+//            if(!super.performAction(activity, layout)) return false;
+//            Log.d(TAG, "mSound = " + String.valueOf(mSound));
+//            // Don't do anything with layout!
+//            // Play sound here.
+////            Log.d(TAG,"Executing sound, mSound = " + String.valueOf(mSound));
+////            new AsyncTask<Integer, Void, Exception>() {
+////                @Override
+////                protected Exception doInBackground(Integer... params) {
+////                    if(mMediaPlayer == null) {
+////                        Log.d(TAG,"Creating media player");
+////                        //if resource
+////                        int sound = params[0];
+////                        Log.d(TAG,"mSound = " + String.valueOf(sound));
+////                        mMediaPlayer = MediaPlayer.create(activity, sound);
+////                        mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+////                            public void onCompletion(MediaPlayer mp) {
+////                                try {
+////                                    mMediaPlayer.stop();
+////                                    mMediaPlayer.release();
+////                                    mMediaPlayer=null;
+////                                    Log.d(TAG, "Media player released");
+////                                }
+////                                catch (Exception e)
+////                                {
+////                                    e.printStackTrace();
+////                                }
+////                            }
+////                        });
+////                        Log.d(TAG,"Stating media player");
+////                        mMediaPlayer.start();
+//
+////                        //if uri
+////                        mMediaPlayer = new MediaPlayer();
+////                        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+////                        mMediaPlayer.setDataSource(mActivity, myUri);
+////                        try{
+////                            mMediaPlayer.prepare();
+////                        }
+////                        catch(Exception e){
+////                            return e;
+////                        }
+////                        mMediaPlayer.start();
+////
+////
+////                    }
+////                    return null;
+////                }
+////            }.execute(mSound);
+//            return true;
+//        }
+//
+//        /**
+//         * Implement Parcelable interface.
+//         */
+//        public void writeToParcel(Parcel out, int flags) {
+//            super.writeToParcel(out, flags);
+//        }
+//
+//        public static final Parcelable.Creator<SoundAction> CREATOR
+//                = new Parcelable.Creator<SoundAction>() {
+//            public SoundAction createFromParcel(Parcel in) {
+//                return new SoundAction(in);
+//            }
+//            public SoundAction[] newArray(int size) {
+//                return new SoundAction[size];
+//            }
+//        };
+//    }
 }
