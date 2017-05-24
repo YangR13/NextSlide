@@ -221,6 +221,7 @@ public class RecognitionActivity extends Activity implements
         else {
             Log.d(TAG,"HashMap does not contain key: /" + mapKey + "/");
         }
+        switchSearch(KWS_SEARCH);
 
     }
 
