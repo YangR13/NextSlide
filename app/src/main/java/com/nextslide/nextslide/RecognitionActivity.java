@@ -33,37 +33,24 @@ package com.nextslide.nextslide;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.nextslide.nextslide.R;
-import com.squareup.picasso.Picasso;
-
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
-import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
 
 import edu.cmu.pocketsphinx.Assets;
 import edu.cmu.pocketsphinx.Hypothesis;
@@ -92,22 +79,26 @@ public class RecognitionActivity extends Activity implements
     private SpeechRecognizer recognizer;
     private HashMap<String, Integer> captions;
     private File mFile;
-    private HashMap<String, Integer> mHashMap;
-    private ImageView mImageView;
+    private Presentation mPresentation;
 
     @Override
     public void onCreate(Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_recognition);
 
-        mImageView = (ImageView) findViewById(R.id.speechImage);
+        // Get presentation object.
+        Intent intent = getIntent();
+        Bundle b = this.getIntent().getExtras();
+        if (b == null) {
+            // TODO: Error! Go back to MainActivity!
+        }
+        mPresentation = b.getParcelable("presentation_id");
+        if(mPresentation == null) {
+            // TODO: Error! Go back to MainActivity!
+        }
 
-        // Prepare the data for UI
-        mHashMap = new HashMap<>();
-        mHashMap.put("stand", R.drawable.jojo);
-        mHashMap.put("alligators",R.drawable.alligators);
-        mHashMap.put("popping", R.drawable.jimbo);
-        mHashMap.put("abilities", R.drawable.tommy);
+        int layout = R.id.presentation_layout;
+        mPresentation.setActivityAndLayoutId(this, layout);
 
         setContentView(R.layout.activity_recognition);
         ((TextView) findViewById(R.id.speechText))
@@ -133,15 +124,18 @@ public class RecognitionActivity extends Activity implements
 
                     Log.d(TAG,"creating keyword search file");
                     // Create keyword-activation search.
+
                     File assetsDir = assets.getExternalDir();
+                    assetsDir.mkdirs();
                     mFile = new File(assetsDir, "keywords.gram");
+
                     //FileOutputStream outputStream;
                     FileWriter fileWriter = new FileWriter(mFile,false);
                     try {
                         //outputStream = openFileOutput(mFile.getName(), Context.MODE_PRIVATE);
                         String keyword = "";
                         int syllables = 0;
-                        for (String key : mHashMap.keySet()) {
+                        for (String key : mPresentation.keySet()) {
                             syllables = (int) Math.ceil((double)key.length()/5.0);
                             if(syllables == 1)
                                 keyword = key + " /1.0/\n";
@@ -203,6 +197,8 @@ public class RecognitionActivity extends Activity implements
             recognizer.cancel();
             recognizer.shutdown();
         }
+
+        mFile.delete();
     }
 
     /**
@@ -218,21 +214,14 @@ public class RecognitionActivity extends Activity implements
         Log.d(TAG,"hypothesis != null");
         String text = hypothesis.getHypstr();
         Log.d(TAG,"Got string: " + text);
-        int resID = 0;
         String mapKey = text.trim();
-        if(mHashMap.containsKey(mapKey)) {
-            resID = mHashMap.get(mapKey);
-            Log.d(TAG,String.valueOf(resID));
+        if(mPresentation.containsKey(mapKey)) {
+            mPresentation.performAction(mapKey);
         }
         else {
-            resID = R.drawable.jojo;
             Log.d(TAG,"HashMap does not contain key: /" + mapKey + "/");
         }
-        Picasso.with(this)
-                .load(resID)
-                //.fit()
-                .into(mImageView);
-        ((ImageView) findViewById(R.id.speechImage)).setImageResource(resID);
+
     }
 
     /**
@@ -246,21 +235,13 @@ public class RecognitionActivity extends Activity implements
             String text = hypothesis.getHypstr();
             makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
             Log.d(TAG,"Got string: " + text);
-            int resID = 0;
             String mapKey = text.trim();
-            if(mHashMap.containsKey(mapKey)) {
-                resID = mHashMap.get(mapKey);
-                Log.d(TAG,String.valueOf(resID));
+            if(mPresentation.containsKey(mapKey)) {
+                mPresentation.performAction(mapKey);
             }
             else {
-                resID = R.drawable.jojo;
                 Log.d(TAG,"HashMap does not contain key: /" + mapKey + "/");
             }
-            Picasso.with(this)
-                    .load(resID)
-                    //.fit()
-                    .into(mImageView);
-            ((ImageView) findViewById(R.id.speechImage)).setImageResource(resID);
         }
     }
 
@@ -302,7 +283,8 @@ public class RecognitionActivity extends Activity implements
         // Create grammar-based search for digit recognition
         File keywordsGrammar = new File(assetsDir, "keywords.gram");
         Log.d(TAG,"Reading 'keywords.gram'");
-        FileInputStream inputStream = openFileInput(keywordsGrammar.getName());
+        FileInputStream inputStream = new FileInputStream(keywordsGrammar);
+        //FileInputStream inputStream = openFileInput(keywordsGrammar.getName());
         String total = getStringFromInputStream(inputStream);
         Log.d(TAG, total);
         inputStream.close();

@@ -42,20 +42,26 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
         // TODO: Create presentation builder activity. Activity allows users to add files from gallery to resource folder (maybe, might be better solutions). Activity also displays existing associations.
 
         // TEST: Build a test presentation list!
-        Presentation p1 = new Presentation("Test Presentation 1", "Description 1");
-        p1.addAction("test", new Presentation.ImageAction(R.drawable.karpkarp));
-        Presentation p2 = new Presentation("Test Presentation 2", "Description 2");
-        p2.addAction("test", new Presentation.ImageAction(R.drawable.karpkarp));
-
+        Presentation p1 = new Presentation("Yang's Presentation", "Karpkarp. And Food. Fish are friends not food.");
+        p1.addAction("carp", new Presentation.ImageAction(R.drawable.karpkarp));
+        p1.addAction("sushi", new Presentation.ImageAction(R.drawable.sushi));
+        p1.addAction("also sushi", new Presentation.ImageAction(R.drawable.sushi2));
+        p1.addAction("curry", new Presentation.ImageAction(R.drawable.curry));
+        p1.addAction("ramen", new Presentation.ImageAction(R.drawable.ramen));
         mPresentations.add(p1);
+
+        Presentation p2 = new Presentation("Brian's Presentation", "Memes. All the memes.");
+        p2.addAction("stand", new Presentation.ImageAction(R.drawable.jojo));
+        p2.addAction("alligators", new Presentation.ImageAction(R.drawable.alligators));
+        p2.addAction("popping", new Presentation.ImageAction(R.drawable.jimbo));
+        p2.addAction("abilities", new Presentation.ImageAction(R.drawable.tommy));
         mPresentations.add(p2);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, RecognitionActivity.class);
-                startActivity(intent);
+                // TODO: Start Activity to create new Presentation.
             }
         });
     }
@@ -85,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
     // Impement PresentationListManager.
     public void startPresentation(Presentation presentation) {
         // Create an PresentationActivity Intent.
-        Intent intent = new Intent(this, PresentationActivity.class);
+        Intent intent = new Intent(this, RecognitionActivity.class);
         Bundle presentationBundle = new Bundle();
         presentationBundle.putParcelable("presentation_id", presentation);
         intent.putExtras(presentationBundle);

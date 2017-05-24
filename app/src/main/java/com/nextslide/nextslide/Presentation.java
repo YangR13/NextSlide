@@ -1,13 +1,19 @@
 package com.nextslide.nextslide;
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * Created by yangren on 5/16/17.
@@ -18,7 +24,9 @@ public class Presentation implements Parcelable {
     private String mDescription;
     // HashMap used to store associations between Strings and Actions.
     private HashMap<String, Action> mMap;
-    private ViewGroup mParent;
+    //private ViewGroup mParent;
+    private int mParent;
+    private Activity mActivity;
 
     // Constructor.
     public Presentation(String name, String description)
@@ -44,10 +52,15 @@ public class Presentation implements Parcelable {
     String getName() { return mName; }
     String getDescription() { return mDescription; }
 
+    boolean containsKey(String key) { return mMap.containsKey(key); }
+    Set<String> keySet() { return mMap.keySet(); }
+
     // Needs to be called as soon as the Presentation Activity is started!
-    public void setParentViewGroup(ViewGroup parent)
+    //public void setParentViewGroup(ViewGroup parent)
+    public void setActivityAndLayoutId(Activity activity, int layout)
     {
-        mParent = parent;
+        mActivity = activity;
+        mParent = layout;
     }
 
     public void addAction(String key, Action value)
@@ -57,7 +70,9 @@ public class Presentation implements Parcelable {
 
     public void performAction(String key)
     {
-        mMap.get(key).performAction(mParent);
+        Action a = mMap.get(key);
+        if(a != null)
+            a.performAction(mActivity, mParent);
     }
 
     /*
@@ -114,7 +129,8 @@ public class Presentation implements Parcelable {
         {
             mTimesPerformed = 0;
         }
-        public boolean performAction(ViewGroup parent)
+        //public boolean performAction(ViewGroup parent)
+        public boolean performAction(Activity activity, int parent)
         {
             mTimesPerformed++;
             return true;
@@ -144,19 +160,26 @@ public class Presentation implements Parcelable {
             mImage = in.readInt();
         }
 
-        public boolean performAction(ViewGroup parent) {
-            if(!super.performAction(parent)) return false;
+        //public boolean performAction(ViewGroup parent) {
+        public boolean performAction(Activity activity, int layout) {
+            if(!super.performAction(activity, layout)) return false;
             // Remove all child views from the parent.
-            parent.removeAllViews();
+            ViewGroup layoutVG = (ViewGroup)activity.findViewById(layout);
+            layoutVG.removeAllViews();
 
             // Create a new view with the image, and add it to the parent.
-            ImageView v = (ImageView) LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.my_image_view, parent, false);
+            ImageView v = (ImageView) LayoutInflater.from(layoutVG.getContext())
+                    .inflate(R.layout.my_image_view, layoutVG, false);
 
             // Set the image. Replace this with Picasso function!s
             v.setImageResource(mImage);
-
-            parent.addView(v);
+/*
+            Picasso.with(parent.getContext())
+                    .load(mImage)
+                    //.fit()
+                    .into(v);
+*/
+            layoutVG.addView(v);
             return true;
         }
 
@@ -189,9 +212,9 @@ public class Presentation implements Parcelable {
         public SoundAction(Parcel in) {
             super(in);
         }
-        public boolean performAction(ViewGroup parent) {
-            if(!super.performAction(parent)) return false;
-            // Don't do anything with parent!
+        public boolean performAction(Activity activity, int layout) {
+            if(!super.performAction(activity, layout)) return false;
+            // Don't do anything with layout!
             // Play sound here.
 
             return true;
