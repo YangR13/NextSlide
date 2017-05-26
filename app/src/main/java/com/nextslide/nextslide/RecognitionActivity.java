@@ -335,7 +335,6 @@ public class RecognitionActivity extends Activity implements
 
     @Override
     public void onTimeout() {
-        previous = "";
         switchSearch(KWS_SEARCH);
     }
 
