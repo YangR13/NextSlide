@@ -240,27 +240,31 @@ public class Presentation implements Parcelable {
             new AsyncTask<Integer, Void, Exception>() {
                 @Override
                 protected Exception doInBackground(Integer... params) {
-                    if(mMediaPlayer == null) {
-                        Log.d(TAG, "Creating media player");
-                        //if resource
-                        int sound = params[0];
-                        Log.d(TAG, "mSound = " + String.valueOf(sound));
-                        mMediaPlayer = MediaPlayer.create(activity, sound);
-                        mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                            public void onCompletion(MediaPlayer mp) {
-                                try {
-                                    mMediaPlayer.stop();
-                                    mMediaPlayer.release();
-                                    mMediaPlayer = null;
-                                    Log.d(TAG, "Media player released");
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
-                        Log.d(TAG, "Starting media player");
-                        mMediaPlayer.start();
+                    if(mMediaPlayer != null) {
+                        mMediaPlayer.stop();
+                        mMediaPlayer.release();
+                        mMediaPlayer = null;
                     }
+                    Log.d(TAG, "Creating media player");
+                    //if resource
+                    int sound = params[0];
+                    Log.d(TAG, "mSound = " + String.valueOf(sound));
+                    mMediaPlayer = MediaPlayer.create(activity, sound);
+                    mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                        public void onCompletion(MediaPlayer mp) {
+                        try {
+                            mMediaPlayer.stop();
+                            mMediaPlayer.release();
+                            mMediaPlayer = null;
+                            Log.d(TAG, "Media player released");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        }
+                    });
+                    Log.d(TAG, "Starting media player");
+                    mMediaPlayer.start();
+
                     return null;
                 }
             }.execute(mSound);

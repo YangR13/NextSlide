@@ -40,8 +40,12 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -77,6 +81,7 @@ public class RecognitionActivity extends Activity implements
     private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 1;
 
     private SpeechRecognizer recognizer;
+    private String previous = "";
     private HashMap<String, Integer> captions;
     private File mFile;
     private Presentation mPresentation;
@@ -194,13 +199,25 @@ public class RecognitionActivity extends Activity implements
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.d(TAG,"onDestroy");
 
         if (recognizer != null) {
+            recognizer.stop();
             recognizer.cancel();
             recognizer.shutdown();
         }
 
+        if(Presentation.mMediaPlayer != null) {
+            Presentation.mMediaPlayer.pause();
+            Presentation.mMediaPlayer.release();
+        }
+
         mFile.delete();
+    }
+
+    @Override
+    protected void onSaveInstanceState (Bundle outState) {
+        super.onSaveInstanceState(outState);
     }
 
     /**
@@ -215,16 +232,19 @@ public class RecognitionActivity extends Activity implements
             return;
         Log.d(TAG,"hypothesis != null");
         String text = hypothesis.getHypstr();
-        Log.d(TAG,"Got string: " + text);
-        String mapKey = text.trim();
-        if(mPresentation.containsKey(mapKey)) {
-            Log.d(TAG,"Performing action");
-            mPresentation.performAction(mapKey);
+        text = text.substring(0,text.indexOf(' '));
+        Log.d(TAG,"Got string: '" + text + "'");
+        Log.d(TAG, "Previous: '" + previous + "'");
+        if(!(previous.equals(text))) {
+            String mapKey = text.trim();
+            if (mPresentation.containsKey(mapKey)) {
+                Log.d(TAG, "Performing action");
+                mPresentation.performAction(mapKey);
+            } else {
+                Log.d(TAG, "HashMap does not contain key: /" + mapKey + "/");
+            }
+            previous = text;
         }
-        else {
-            Log.d(TAG,"HashMap does not contain key: /" + mapKey + "/");
-        }
-        switchSearch(KWS_SEARCH);
 
     }
 
@@ -236,17 +256,22 @@ public class RecognitionActivity extends Activity implements
         Log.d(TAG,"onResult");
         ((TextView) findViewById(R.id.speechText)).setText("");
         if (hypothesis != null) {
+            Log.d(TAG,"hypothesis != null");
             String text = hypothesis.getHypstr();
-            makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
-            Log.d(TAG,"Got string: " + text);
-            String mapKey = text.trim();
-            if(mPresentation.containsKey(mapKey)) {
-                mPresentation.performAction(mapKey);
-            }
-            else {
-                Log.d(TAG,"HashMap does not contain key: /" + mapKey + "/");
+            text = text.substring(0,text.indexOf(' '));
+            Log.d(TAG,"Got string: '" + text + "'");
+            Log.d(TAG, "Previous: '" + previous + "'");
+            if(!(previous.equals(text))) {
+                String mapKey = text.trim();
+                if (mPresentation.containsKey(mapKey)) {
+                    Log.d(TAG, "Performing action");
+                    mPresentation.performAction(mapKey);
+                } else {
+                    Log.d(TAG, "HashMap does not contain key: /" + mapKey + "/");
+                }
             }
         }
+        previous = "";
     }
 
     @Override
@@ -310,6 +335,7 @@ public class RecognitionActivity extends Activity implements
 
     @Override
     public void onTimeout() {
+        previous = "";
         switchSearch(KWS_SEARCH);
     }
 
@@ -333,5 +359,6 @@ public class RecognitionActivity extends Activity implements
         while (-1 != (n = reader.read(buffer))) writer.write(buffer, 0, n);
         return writer.toString();
     }
+
 }
 

@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
         p2.addAction("six", new Presentation.SoundAction(R.raw.drakesix));
         p2.addAction("drake", new Presentation.ImageAction(R.drawable.drake));
         p2.addAction("good", new Presentation.SoundAction(R.raw.verygood));
+        p2.addAction("nuts", new Presentation.SoundAction(R.raw.gotheem));
         mPresentations.add(p2);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
