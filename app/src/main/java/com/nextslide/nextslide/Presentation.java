@@ -53,6 +53,7 @@ public class Presentation implements Parcelable {
         mName = name;
         mDescription = description;
         mMap = new HashMap<String, Action>();
+        mMap.put("six", new SoundAction(R.raw.drakesix));
     }
 
     // Parcelable Constructor.
