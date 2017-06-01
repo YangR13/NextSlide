@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -165,8 +166,8 @@ public class Presentation implements Parcelable {
     }
 
     static class ImageAction extends Action {
-        private int mImage;
-        public ImageAction(int image) {
+        private Uri mImage;
+        public ImageAction(Uri image) {
             super("image");
             Log.d(TAG,"Reading image from ID");
             mImage = image;
@@ -174,7 +175,7 @@ public class Presentation implements Parcelable {
         public ImageAction(Parcel in) {
             super(in);
             Log.d(TAG,"Reading image from parcel");
-            mImage = in.readInt();
+            mImage = in.readParcelable(Uri.class.getClassLoader());
         }
 
         //public boolean performAction(ViewGroup parent) {
@@ -188,14 +189,12 @@ public class Presentation implements Parcelable {
             ImageView v = (ImageView) LayoutInflater.from(layoutVG.getContext())
                     .inflate(R.layout.my_image_view, layoutVG, false);
 
-            // Set the image. Replace this with Picasso function!s
-            v.setImageResource(mImage);
-/*
-            Picasso.with(parent.getContext())
+
+            Picasso.with(activity)
                     .load(mImage)
                     //.fit()
                     .into(v);
-*/
+
             layoutVG.addView(v);
             return true;
         }
@@ -205,7 +204,7 @@ public class Presentation implements Parcelable {
          */
         public void writeToParcel(Parcel out, int flags) {
             super.writeToParcel(out, flags);
-            out.writeInt(mImage);
+            out.writeParcelable(mImage, flags);
         }
 
         public static final Parcelable.Creator<ImageAction> CREATOR

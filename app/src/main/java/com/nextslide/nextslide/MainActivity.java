@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
 
         // TODO: For each presentation, give user option to edit or present.
         // TODO: Create presentation builder activity. Activity allows users to add files from gallery to resource folder (maybe, might be better solutions). Activity also displays existing associations.
-
+        /*
         // TEST: Build a test presentation list!
         Presentation p1 = new Presentation("Yang's Presentation", "Karpkarp. And Food. Fish are friends not food.");
         p1.addAction("carp", new Presentation.ImageAction(R.drawable.karpkarp));
@@ -63,12 +63,14 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
         p2.addAction("good", new Presentation.SoundAction(R.raw.verygood));
         p2.addAction("nuts", new Presentation.SoundAction(R.raw.gotheem));
         mPresentations.add(p2);
-
+        */
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: Start Activity to create new Presentation.
+            // TODO: Start Activity to create new Presentation.
+            Intent intent = new Intent(MainActivity.this, CreateActivity.class);
+            MainActivity.this.startActivityForResult(intent, 9001);
             }
         });
     }
@@ -104,5 +106,29 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
         intent.putExtras(presentationBundle);
         Log.d(TAG,"Starting presentation");
         this.startActivity(intent);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == 9001) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                // Extract Presentation object from Intent.
+                Presentation presentation = null;
+                Bundle b = data.getExtras();
+                if (b != null) {
+                    Log.d(TAG,"Retrieving parcelable");
+                    presentation = b.getParcelable("presentation_id");
+                    Log.d(TAG,"Read parcelable");
+                }
+                // Add extracted Presentation into ArrayList.
+                if(presentation != null) {
+                    mPresentations.add(presentation);
+                }
+
+                mAdapter.notifyDataSetChanged();
+            }
+        }
     }
 }
