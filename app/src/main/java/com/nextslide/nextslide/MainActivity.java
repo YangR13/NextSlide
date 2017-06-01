@@ -14,9 +14,6 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -44,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // Display list of all presentations.
+        mPresentations = new ArrayList<Presentation>();
         loadPresentations();
         mAdapter = new PresentationList(this, mPresentations);
         mRecyclerView.setAdapter(mAdapter);
@@ -190,15 +188,17 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
     protected void loadPresentations() {
         SharedPreferences prefs = getPreferences(MODE_PRIVATE);
         String json = prefs.getString("mPresentations", "");
-        try {
-            JSONArray arr = new JSONArray(json);
-            mPresentations = new ArrayList<Presentation>();
-            for(int i=0; i<arr.length(); i++) {
-                mPresentations.add(new Presentation(arr.getJSONObject(i)));
+        if(json.compareTo("") != 0) {
+            try {
+                JSONArray arr = new JSONArray(json);
+
+                for(int i=0; i<arr.length(); i++) {
+                    mPresentations.add(new Presentation(arr.getJSONObject(i)));
+                }
             }
-        }
-        catch(JSONException ex) {
-            ex.printStackTrace();
+            catch(JSONException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 }
