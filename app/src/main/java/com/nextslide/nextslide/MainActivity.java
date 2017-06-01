@@ -1,6 +1,7 @@
 package com.nextslide.nextslide;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -12,6 +13,12 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.util.ArrayList;
 
@@ -25,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -36,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // Display list of all presentations.
-        mPresentations = new ArrayList<Presentation>();
+        loadPresentations();
         mAdapter = new PresentationList(this, mPresentations);
         mRecyclerView.setAdapter(mAdapter);
 
@@ -76,6 +84,33 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // TODO: this part may need some coding
+    }
+
+    // depending on how you are going to pass information back and forth, you might need this
+    // uncommented and filled out:
+    /*
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // TODO: I bring news from the nether!
+    }
+    */
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        savePresentations();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -108,6 +143,11 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
         this.startActivity(intent);
     }
 
+    public void deletePresentation(int position) {
+        mPresentations.remove(position);
+        mAdapter.notifyDataSetChanged();
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
@@ -128,7 +168,37 @@ public class MainActivity extends AppCompatActivity implements PresentationList.
                 }
 
                 mAdapter.notifyDataSetChanged();
+
+                savePresentations();
             }
+        }
+    }
+
+    protected void savePresentations() {
+        JSONArray arr = new JSONArray();
+        for(int i=0; i<mPresentations.size(); i++) {
+            arr.put(mPresentations.get(i).toJSON());
+        }
+        String json = arr.toString();
+
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor prefsEditor = prefs.edit();
+        prefsEditor.putString("mPresentations", json);
+        prefsEditor.commit();
+    }
+
+    protected void loadPresentations() {
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        String json = prefs.getString("mPresentations", "");
+        try {
+            JSONArray arr = new JSONArray(json);
+            mPresentations = new ArrayList<Presentation>();
+            for(int i=0; i<arr.length(); i++) {
+                mPresentations.add(new Presentation(arr.getJSONObject(i)));
+            }
+        }
+        catch(JSONException ex) {
+            ex.printStackTrace();
         }
     }
 }

@@ -17,6 +17,9 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -53,7 +56,7 @@ public class Presentation implements Parcelable {
     }
 
     // Parcelable Constructor.
-    private Presentation(Parcel in) {
+    public Presentation(Parcel in) {
         mName = in.readString();
         mDescription = in.readString();
         mMap = new HashMap<String, Action>();
@@ -62,6 +65,31 @@ public class Presentation implements Parcelable {
             String key = in.readString();
             Action value = in.readParcelable(Action.class.getClassLoader());
             mMap.put(key,value);
+        }
+    }
+
+    // JSON Constructor.
+    public Presentation(JSONObject obj) {
+        try {
+            mName = obj.getString("name");
+            mDescription = obj.getString("description");
+            JSONArray mapArr = obj.getJSONArray("map_arr");
+            mMap = new HashMap<String, Action>();
+            for(int i=0; i < mapArr.length(); i++) {
+                JSONObject mapObj = mapArr.getJSONObject(i);
+                JSONObject actionObj = mapObj.getJSONObject("value");
+                String type = actionObj.getString("type");
+                Action action = null;
+                if(type.compareTo("image") == 0) {
+                    action = new ImageAction(actionObj);
+                } else if (type.compareTo("sound") == 0) {
+                    action = new SoundAction(actionObj);
+                }
+                mMap.put(mapObj.getString("key"), action);
+            }
+        }
+        catch(JSONException ex){
+            ex.printStackTrace();
         }
     }
 
@@ -101,11 +129,39 @@ public class Presentation implements Parcelable {
     public void writeToParcel(Parcel out, int flags) {
         out.writeString(mName);
         out.writeString(mDescription);
-        out.writeInt(mMap.size());
-        for(HashMap.Entry<String,Action> entry : mMap.entrySet()){
-            out.writeString(entry.getKey());
-            out.writeParcelable(entry.getValue(), flags);
+        int size = 0;
+        if(mMap != null) size = mMap.size();
+        out.writeInt(size);
+        if(mMap != null) {
+            for(HashMap.Entry<String,Action> entry : mMap.entrySet()){
+                out.writeString(entry.getKey());
+                out.writeParcelable(entry.getValue(), flags);
+            }
         }
+    }
+
+    public JSONObject toJSON() {
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("name", mName);
+            obj.put("description", mDescription);
+            JSONArray mapArr = new JSONArray();
+            if(mMap != null) {
+                for(HashMap.Entry<String,Action> entry : mMap.entrySet()){
+                    JSONObject mapObj = new JSONObject();
+                    mapObj.put("key", entry.getKey());
+                    mapObj.put("value", entry.getValue().toJSON());
+                    mapArr.put(mapObj);
+                }
+            }
+            obj.put("map_arr", mapArr);
+
+            return obj;
+        }
+        catch(JSONException ex){
+            ex.printStackTrace();
+        }
+        return null;
     }
 
     public static final Parcelable.Creator<Presentation> CREATOR
@@ -136,6 +192,16 @@ public class Presentation implements Parcelable {
             mType = in.readString();
             mTimesPerformed = 0;
         }
+        // JSON Constructor.
+        public Action(JSONObject json) {
+            try {
+                mType = json.getString("type");
+            }
+            catch(JSONException ex) {
+                ex.printStackTrace();
+            }
+            mTimesPerformed = 0;
+        }
 
         public String getTypeString()
         {
@@ -163,6 +229,17 @@ public class Presentation implements Parcelable {
             out.writeString(mType);
         }
 
+        public JSONObject toJSON() {
+            JSONObject obj = new JSONObject();
+            try {
+                obj.put("type", mType);
+            }
+            catch(JSONException ex) {
+                ex.printStackTrace();
+            }
+            return obj;
+        };
+
     }
 
     static class ImageAction extends Action {
@@ -176,6 +253,16 @@ public class Presentation implements Parcelable {
             super(in);
             Log.d(TAG,"Reading image from parcel");
             mImage = in.readParcelable(Uri.class.getClassLoader());
+        }
+        public ImageAction(JSONObject json) {
+            super(json);
+            Log.d(TAG,"Reading image from JSON");
+            try {
+                mImage = Uri.parse(json.getString("image"));
+            }
+            catch(JSONException ex) {
+                ex.printStackTrace();
+            }
         }
 
         //public boolean performAction(ViewGroup parent) {
@@ -217,6 +304,18 @@ public class Presentation implements Parcelable {
                 return new ImageAction[size];
             }
         };
+
+        public JSONObject toJSON() {
+            JSONObject obj = super.toJSON();
+            try {
+                obj.put("image", mImage.toString());
+                return obj;
+            }
+            catch(JSONException ex){
+                ex.printStackTrace();
+            }
+            return null;
+        }
     }
     static class SoundAction extends Action {
         private int mSound;
@@ -229,6 +328,16 @@ public class Presentation implements Parcelable {
             super(in);
             Log.d(TAG,"Reading sound from parcel");
             mSound = in.readInt();
+        }
+        public SoundAction(JSONObject json) {
+            super(json);
+            Log.d(TAG,"Reading image from JSON");
+            try {
+                mSound = json.getInt("sound");
+            }
+            catch(JSONException ex) {
+                ex.printStackTrace();
+            }
         }
 
         //public boolean performAction(ViewGroup parent) {
@@ -288,6 +397,18 @@ public class Presentation implements Parcelable {
                 return new SoundAction[size];
             }
         };
+
+        public JSONObject toJSON() {
+            JSONObject obj = super.toJSON();
+            try {
+                obj.put("sound", mSound);
+                return obj;
+            }
+            catch(JSONException ex){
+                ex.printStackTrace();
+            }
+            return null;
+        }
     }
 //    // TODO.
 //    static class SoundAction extends Action {

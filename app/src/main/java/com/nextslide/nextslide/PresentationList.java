@@ -2,6 +2,7 @@ package com.nextslide.nextslide;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ public class PresentationList extends RecyclerView.Adapter<PresentationList.View
 {
     private PresentationListManager mManager;
     private ArrayList<Presentation> mPresentations;
+    private String TAG = "PresentationList";
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -45,6 +47,7 @@ public class PresentationList extends RecyclerView.Adapter<PresentationList.View
                 .inflate(R.layout.my_text_view, parent, false);
         // set the view's size, margins, paddings and layout parameters
         // ...
+        v.setLongClickable(true);
         ViewHolder vh = new ViewHolder(v);
         return vh;
     }
@@ -55,11 +58,22 @@ public class PresentationList extends RecyclerView.Adapter<PresentationList.View
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         final Presentation p = mPresentations.get(position);
+        final int position_ = position;
         holder.mTextView.setText(p.getName() + "\n" + p.getDescription());
         holder.mTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mManager.startPresentation(p);
+            }
+        });
+        holder.mTextView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Log.d(TAG, "onLongClick");
+
+                // Delete from PresentationList.
+                mManager.deletePresentation(position_);
+                return true;
             }
         });
 
@@ -73,5 +87,6 @@ public class PresentationList extends RecyclerView.Adapter<PresentationList.View
 
     static interface PresentationListManager {
         void startPresentation(Presentation p);
+        void deletePresentation(int position);
     }
 }
